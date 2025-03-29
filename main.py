@@ -44,7 +44,9 @@ async def translate(
         ],
     ),
 ):
-    # Use the translation service to translate the word
-    translation = translation_service.translate(request.word)
+    # Use the translation service to translate the word with context
+    translation = translation_service.translate(
+        word=request.word, context=request.context, word_index=request.wordIndex
+    )
 
     return TranslateResponse(word=request.word, translation=translation)
