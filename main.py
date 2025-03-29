@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Body
 from services.translation_service import TranslationService
 from api.translations import TranslateRequest, TranslateResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Translation API",
@@ -9,6 +10,15 @@ app = FastAPI(
     openapi_url="/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Create translation service instance
