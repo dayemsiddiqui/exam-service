@@ -9,12 +9,12 @@ class TranslateRequest(BaseModel):
     model_config = {
         "json_schema_extra": {
             "examples": [
+                {"word": "Haus", "context": "Ich gehe nach Haus.", "wordIndex": 3},
                 {
-                    "word": "hello",
-                    "context": "Can you say hello in Spanish?",
-                    "wordIndex": 3,
+                    "word": "Schule",
+                    "context": "Die Kinder gehen zur Schule.",
+                    "wordIndex": 4,
                 },
-                {"word": "book", "context": "I need to book a flight.", "wordIndex": 3},
             ]
         }
     }

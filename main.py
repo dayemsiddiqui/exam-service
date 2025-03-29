@@ -25,21 +25,21 @@ async def root():
     response_model=TranslateResponse,
     response_description="Returns the translated word",
     summary="Translate a word in context",
-    description="Translates a single word, taking into account the surrounding context.",
+    description="Translates a single word from German to English, taking into account the surrounding context.",
 )
 async def translate(
     request: TranslateRequest = Body(
         ...,
         examples=[
             {
-                "word": "hello",
-                "context": "Can you say hello in Spanish?",
+                "word": "Haus",
+                "context": "Ich gehe nach Haus.",
                 "wordIndex": 3,
             },
             {
-                "word": "book",
-                "context": "I need to book a flight.",
-                "wordIndex": 3,
+                "word": "Schule",
+                "context": "Die Kinder gehen zur Schule.",
+                "wordIndex": 4,
             },
         ],
     ),

@@ -8,8 +8,8 @@ class TranslateResponse(BaseModel):
     model_config = {
         "json_schema_extra": {
             "examples": [
-                {"word": "hello", "translation": "hola"},
-                {"word": "book", "translation": "reservar"},
+                {"word": "Haus", "translation": "house"},
+                {"word": "Schule", "translation": "school"},
             ]
         }
     }
