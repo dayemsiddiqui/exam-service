@@ -2,9 +2,9 @@ import os
 from typing import Optional, Dict
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
 from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_core.output_parsers import JsonOutputParser
 
 # Load environment variables
 load_dotenv()
@@ -38,7 +38,10 @@ class TranslationService:
             temperature=0.1,
         )
 
-        # Define the translation prompt template
+        # Create parser for structured output
+        self.parser = JsonOutputParser(pydantic_object=TranslationResult)
+
+        # Define the translation prompt template with format instructions
         self.translation_prompt = PromptTemplate.from_template("""
         You are a professional language translator. Translate the word: "{word}" from any language to English.
         
@@ -46,14 +49,9 @@ class TranslationService:
         Word position in the context: {word_index}
         
         Analyze the word in its context and provide the most accurate translation.
-        Your response should be structured as a JSON with the following fields:
-        - translation: the most accurate English translation
-        - part_of_speech: the grammatical function in this context
-        - confidence: a number between 0 and 1 representing how confident you are
-        - alternatives: a dictionary of alternative translations with example contexts
         
-        ONLY respond with the JSON object, no additional text.
-        """)
+        {format_instructions}
+        """).partial(format_instructions=self.parser.get_format_instructions())
 
     def translate(self, word: str, context: str = "", word_index: int = 0) -> str:
         """
@@ -73,21 +71,16 @@ class TranslationService:
             word_index = 0
 
         # Create the structured chain
-        chain = self.translation_prompt | self.model | StrOutputParser()
+        chain = self.translation_prompt | self.model | self.parser
 
         try:
-            # Execute the chain
+            # Execute the chain and get structured output
             result = chain.invoke(
                 {"word": word, "context": context, "word_index": word_index}
             )
 
-            # Parse the result as a TranslationResult
-            import json
-
-            parsed_result = json.loads(result)
-
             # Return just the translation for compatibility with existing code
-            return parsed_result.get("translation", word)
+            return result.translation
 
         except Exception as e:
             print(f"Translation error: {e}")
