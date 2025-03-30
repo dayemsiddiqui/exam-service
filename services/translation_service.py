@@ -3,7 +3,7 @@ from typing import Optional, List
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_groq import ChatGroq
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 
 # Load environment variables
 load_dotenv()
@@ -20,11 +20,11 @@ class TranslationResult(BaseModel):
 
     translation: str = Field(description="The translated word in English")
     part_of_speech: Optional[str] = Field(
-        description="The part of speech of the word in the given context"
+        default=None, description="The part of speech of the word in the given context"
     )
     confidence: float = Field(description="Confidence score for the translation (0-1)")
     alternatives: Optional[List[str]] = Field(
-        description="Alternative translations with contexts"
+        default=[], description="Alternative translations with contexts"
     )
 
 
@@ -33,7 +33,7 @@ class TranslationService:
         """Initialize the translation service with the Groq language model."""
         # Initialize the Groq model
         self.model = ChatGroq(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             temperature=0.1,
         )
 
