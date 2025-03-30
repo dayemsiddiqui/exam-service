@@ -33,7 +33,7 @@ class TranslationService:
         """Initialize the translation service with the Groq language model."""
         # Initialize the Groq model
         self.model = ChatGroq(
-            model="llama3-70b-8192",
+            model="llama-3.3-70b-versatile",
             temperature=0.1,
         )
 
