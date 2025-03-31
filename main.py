@@ -1,8 +1,13 @@
-from fastapi import FastAPI, Body, Query
+from fastapi import FastAPI, Body, Query, HTTPException
+from fastapi.responses import StreamingResponse
+import os
 from services.translation_service import TranslationService
 from services.listening_exam_service import ListeningExamService
 from api.translations import TranslateRequest, TranslateResponse
-from api.listening_exam import ListeningExamRequest, ListeningExamResponse
+from api.listening_exam import (
+    ListeningExamResponse,
+    AudioGenerationRequest,
+)
 from workflows.generate_transcript import Conversation
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -69,13 +74,13 @@ async def translate(
 
 
 @app.get(
-    "/listening-exam-conversation",
+    "/listening-exam/transcript",
     response_model=ListeningExamResponse,
-    summary="Generate a listening exam conversation",
+    summary="Generate a listening exam transcript",
     description="Generates a telc B1 level listening exam conversation based on the provided topic. The response includes context, dialogue, questions, and answers.",
     response_description="Returns a conversation object containing the generated listening exam content",
 )
-async def listening_exam_conversation(
+async def generate_transcript(
     topic: str = Query(
         default="Is friendship important to you?",
         description="The topic for the listening exam conversation",
@@ -85,12 +90,48 @@ async def listening_exam_conversation(
     ),
 ):
     """
-    Generate a listening exam conversation for telc B1.
+    Generate a listening exam transcript for telc B1.
     Returns a conversation with context, dialogue, questions, and answers.
     """
     # Generate the conversation using the service
-    conversation: Conversation = listening_exam_service.generate_conversation(
-        topic=topic
-    )
-
+    conversation: Conversation = listening_exam_service.generate_transcript(topic=topic)
     return ListeningExamResponse(conversation=conversation)
+
+
+@app.post(
+    "/listening-exam/audio",
+    response_class=StreamingResponse,
+    summary="Generate audio for a text",
+    description="Generates audio for the given text using a voice based on gender and speaker index.",
+    response_description="Returns the generated audio file as a streaming response",
+)
+async def generate_audio(request: AudioGenerationRequest):
+    """
+    Generate audio for the given text.
+    Returns the audio file as a streaming response.
+    """
+    try:
+        # Generate the audio file
+        audio_file = listening_exam_service.audio_service.generate_audio(
+            text=request.text,
+            gender=request.gender,
+            speaker_index=request.speaker_index,
+        )
+
+        # Open the file in binary mode
+        def iterfile():
+            with open(audio_file, mode="rb") as file_like:
+                yield from file_like
+
+            # Delete the file after sending
+            os.unlink(audio_file)
+
+        return StreamingResponse(
+            iterfile(),
+            media_type="audio/mpeg",
+            headers={
+                "Content-Disposition": f"attachment; filename={os.path.basename(audio_file)}"
+            },
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
