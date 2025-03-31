@@ -3,7 +3,6 @@ from workflows.generate_transcript import generate_transcript, Conversation, Spe
 from elevenlabs import ElevenLabs, VoiceSettings
 import os
 import uuid
-from itertools import cycle
 
 # Load environment variables
 load_dotenv()
@@ -33,16 +32,13 @@ VOICE_IDS = {
 
 class ListeningExamService:
     def __init__(self):
-        self.male_voices = cycle(VOICE_IDS["male"])
-        self.female_voices = cycle(VOICE_IDS["female"])
         # Create audio directory if it doesn't exist
         os.makedirs("audio", exist_ok=True)
 
-    def get_next_voice(self, gender: str) -> str:
-        """Get the next available voice for the given gender."""
-        if gender.lower() == "female":
-            return next(self.female_voices)
-        return next(self.male_voices)
+    def get_voice(self, gender: str, speaker_index: int) -> str:
+        """Get the voice for the given gender and speaker index."""
+        voices = VOICE_IDS[gender.lower() if gender.lower() in VOICE_IDS else "male"]
+        return voices[speaker_index % len(voices)]
 
     def generate_conversation(
         self, topic: str = "Is friendship important to you?"
@@ -59,9 +55,9 @@ class ListeningExamService:
         try:
             transcript: Conversation = generate_transcript(topic)
 
-            for speaker in transcript.speakers:
-                # Get next voice for the speaker's gender
-                voice_id = self.get_next_voice(speaker.gender)
+            for idx, speaker in enumerate(transcript.speakers):
+                # Get voice based on speaker's gender and position
+                voice_id = self.get_next_voice(speaker.gender, idx)
 
                 # Get the audio stream
                 audio_stream = elevenlabs_client.text_to_speech.convert(
@@ -86,7 +82,9 @@ class ListeningExamService:
                 ## Save the audio to a file
                 with open(unique_filename, "wb") as f:
                     f.write(audio_bytes)
-                print(f"Saved audio for {speaker.name} as {unique_filename}")
+                print(
+                    f"Saved audio for {speaker.name} ({speaker.gender}) as {unique_filename} using voice {voice_id}"
+                )
 
             return transcript
         except Exception as e:
