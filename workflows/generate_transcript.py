@@ -38,7 +38,7 @@ model = ChatGroq(
 
 
 @traceable(run_type="llm")
-def generate_transcript(topic: str) -> Conversation:
+def generate_listening_exam_transcript(topic: str) -> Conversation:
     background_context = """
     Background Context:
     We are generating a listening exam for the telc B1 German exam.
