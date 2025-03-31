@@ -3,6 +3,7 @@ anyio==4.9.0
 certifi==2025.1.31
 charset-normalizer==3.4.1
 distro==1.9.0
+elevenlabs==1.55.0
 fastapi==0.100.0
 groq==0.20.0
 h11==0.14.0
@@ -36,5 +37,6 @@ tenacity==9.0.0
 typing-inspection==0.4.0
 typing_extensions==4.13.0
 urllib3==2.3.0
+websockets==15.0.1
 wsproto==1.2.0
 zstandard==0.23.0
