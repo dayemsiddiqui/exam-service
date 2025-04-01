@@ -23,6 +23,12 @@ class Speaker(BaseModel):
         description="A True/False question that can be used to test the listener's understand of what the speaker said"
     )
     correct_answer: bool = Field(description="The correct answer to the question")
+    explanation: str = Field(
+        description="An explanation of the correct answer to the question in English"
+    )
+    english_translation: str = Field(
+        description="English translation of the speaker's opinion"
+    )
 
 
 class Conversation(BaseModel):
@@ -55,6 +61,8 @@ def generate_listening_exam_transcript(topic: str) -> Conversation:
     3. Their opinion in German (5-10 sentences)
     4. A True/False question in German about their opinion
     5. The correct answer to that question (true/false)
+    6. An explanation of the correct answer to the question in English
+    7. English translation of the speaker's opinion
 
     Note ensure that some answers are true and some are false.
 
@@ -67,6 +75,8 @@ def generate_listening_exam_transcript(topic: str) -> Conversation:
                 "opinion": "Ich finde das sehr wichtig...", # Opinion in German about the {topic}
                 "question": "Anna findet, dass man ...? # Question in German",
                 "correct_answer": false # true or false
+                "explanation": "The correct answer is false because ... # Explanation in English",
+                "english_translation": "Anna thinks that ... # English translation of the opinion"
             }},
             // ... more speakers ...
         ]
