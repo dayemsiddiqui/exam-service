@@ -77,13 +77,13 @@ async def translate(
     "/listening-exam/transcript",
     response_model=ListeningExamResponse,
     summary="Generate a listening exam transcript",
-    description="Generates a telc B1 level listening exam conversation based on the provided topic. The response includes context, dialogue, questions, and answers.",
+    description="Generates a telc B1 level listening exam conversation. If no topic is provided, uses a round-robin selection from predefined topics.",
     response_description="Returns a conversation object containing the generated listening exam content",
 )
 async def generate_transcript(
     topic: str = Query(
-        default="Is friendship important to you?",
-        description="The topic for the listening exam conversation",
+        default=None,
+        description="The topic for the listening exam conversation. If not provided, a topic will be automatically selected.",
         example="What are your hobbies?",
         min_length=5,
         max_length=200,
@@ -92,8 +92,8 @@ async def generate_transcript(
     """
     Generate a listening exam transcript for telc B1.
     Returns a conversation with context, dialogue, questions, and answers.
+    If no topic is provided, uses round-robin selection from predefined topics.
     """
-    # Generate the conversation using the service
     conversation: Conversation = listening_exam_service.generate_transcript(topic=topic)
     return ListeningExamResponse(conversation=conversation)
 
