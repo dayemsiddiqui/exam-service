@@ -3,12 +3,17 @@ from fastapi.responses import StreamingResponse
 import os
 from services.translation_service import TranslationService
 from services.listening_exam_service import ListeningExamService
+from services.listening_exam_announcement_service import (
+    ListeningExamAnnouncementService,
+)
 from api.translations import TranslateRequest, TranslateResponse
 from api.listening_exam import (
     ListeningExamResponse,
     AudioGenerationRequest,
+    ListeningExamAnnouncementResponse,
 )
 from workflows.generate_transcript import Conversation
+from workflows.generate_announcements import Announcement
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
@@ -34,6 +39,9 @@ translation_service = TranslationService()
 
 # Create listening exam service instance
 listening_exam_service = ListeningExamService()
+
+# Create listening exam announcement service instance
+listening_exam_announcement_service = ListeningExamAnnouncementService()
 
 
 @app.get("/")
@@ -135,3 +143,22 @@ async def generate_audio(request: AudioGenerationRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get(
+    "/listening-exam/announcement",
+    response_model=ListeningExamAnnouncementResponse,
+    summary="Generate a listening exam announcement",
+    description="Generates a telc B1 level listening exam announcement using a round-robin selection from predefined announcement topics.",
+    response_description="Returns a conversation object containing the generated announcement content",
+)
+async def generate_announcement():
+    """
+    Generate a listening exam announcement for telc B1.
+    Returns a conversation with context, announcement, questions, and answers.
+    Uses round-robin selection from predefined announcement types.
+    """
+    announcement: Announcement = (
+        listening_exam_announcement_service.generate_announcement()
+    )
+    return ListeningExamAnnouncementResponse(announcement=announcement)

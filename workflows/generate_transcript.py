@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from typing import List
 from langsmith import traceable
 
-__all__ = ["Speaker", "Conversation", "generate_transcript"]
+__all__ = ["Speaker", "Conversation", "generate_listening_exam_transcript"]
 
 # Load environment variables
 load_dotenv()
