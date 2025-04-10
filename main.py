@@ -6,14 +6,17 @@ from services.listening_exam_service import ListeningExamService
 from services.listening_exam_announcement_service import (
     ListeningExamAnnouncementService,
 )
+from services.interview_service import InterviewService
 from api.translations import TranslateRequest, TranslateResponse
 from api.listening_exam import (
     ListeningExamResponse,
     AudioGenerationRequest,
     ListeningExamAnnouncementResponse,
+    InterviewResponse,
 )
 from workflows.generate_transcript import Conversation
 from workflows.generate_announcements import Announcement
+from workflows.generate_interview import Interview
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
@@ -42,6 +45,9 @@ listening_exam_service = ListeningExamService()
 
 # Create listening exam announcement service instance
 listening_exam_announcement_service = ListeningExamAnnouncementService()
+
+# Create interview service instance
+interview_service = InterviewService()
 
 
 @app.get("/")
@@ -162,3 +168,27 @@ async def generate_announcement():
         listening_exam_announcement_service.generate_announcement()
     )
     return ListeningExamAnnouncementResponse(announcement=announcement)
+
+
+# New endpoint for generating interview transcripts
+@app.get(
+    "/listening-exam/interview",
+    response_model=InterviewResponse,
+    summary="Generate a listening exam interview",
+    description="Generates a telc B1 level listening exam interview focused on the interviewee's life, career, and experiences, along with 10 True/False questions.",
+    response_description="Returns an interview object containing the dialogue, interviewee details, and exam questions.",
+)
+async def generate_interview():
+    """
+    Generate a listening exam interview for telc B1.
+    Returns an interview with dialogue, questions, and answers focused on the interviewee.
+    The topic is implicitly derived from the interviewee's profile and experiences.
+    """
+    try:
+        interview_data: Interview = interview_service.generate_interview()
+        return InterviewResponse(interview=interview_data)
+    except Exception as e:
+        # Log the exception for debugging
+        print(f"Error generating interview: {e}")
+        # Raise an HTTPException to return a proper error response to the client
+        raise HTTPException(status_code=500, detail=f"Failed to generate interview: {e}")

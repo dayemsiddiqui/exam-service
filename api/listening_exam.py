@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from workflows.generate_transcript import Conversation
 from workflows.generate_announcements import Announcement
+from workflows.generate_interview import Interview
 from typing import Optional
 
 
@@ -13,6 +14,10 @@ class ListeningExamResponse(BaseModel):
 
 class ListeningExamAnnouncementResponse(BaseModel):
     announcement: Announcement
+
+
+class InterviewResponse(BaseModel):
+    interview: Interview
 
 
 class AudioGenerationRequest(BaseModel):
