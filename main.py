@@ -18,7 +18,7 @@ from workflows.generate_transcript import Conversation
 from workflows.generate_announcements import Announcement
 from workflows.generate_interview import Interview
 from fastapi.middleware.cors import CORSMiddleware
-
+from services.reading_exam_service import ReadingExamService, ReadingAdvertExamResult
 app = FastAPI(
     title="Translation API",
     description="API for translating words in context",
@@ -192,3 +192,19 @@ async def generate_interview():
         print(f"Error generating interview: {e}")
         # Raise an HTTPException to return a proper error response to the client
         raise HTTPException(status_code=500, detail=f"Failed to generate interview: {e}")
+
+
+@app.get(
+    "/reading-exam/advert",
+    response_model=ReadingAdvertExamResult,
+    summary="Generate a reading exam advert",
+    description="Generates a reading exam advert for telc B1. Returns a list of questions and adverts.",
+    response_description="Returns a list of questions and adverts.",
+)
+async def generate_reading_exam_advert():
+    """
+    Generate a reading exam advert for telc B1.
+    """
+    reading_exam_service = ReadingExamService()
+    exam_result: ReadingAdvertExamResult = reading_exam_service.get_advert_section()
+    return exam_result
