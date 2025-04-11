@@ -4,9 +4,10 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from typing import List
 from langsmith import traceable
-import os
 
 
+## Export the workflow
+__all__ = ["ReadingAdvertExamWorkflow", "ReadingAdvert", "ReadingAdvertExam"]
 ## Load environment variables
 load_dotenv()
 
@@ -17,6 +18,7 @@ class ReadingAdvert(BaseModel):
     question: str = Field(description="The question to be answered by the reading advert. In German.")
     answer: str = Field(description="The correct advert that matches the question. In German.")
     wrong_answer: str = Field(description="A wrong advert that sounds similar and plausible to the question but is not the correct answer. In German.")
+    explanation: str = Field(description="An explanation of the correct answer to the question in English. Do not address the wrong answer or any explanation of the wrong answer.")
 
 class ReadingAdvertExam(BaseModel):
     questions: List[ReadingAdvert] = Field(description="A list of 10 questions and answers.")
@@ -33,19 +35,14 @@ prompt_template = PromptTemplate(
     """
 )
 
-## Initialize LLM
-llm = ChatGroq(model_name="meta-llama/llama-4-scout-17b-16e-instruct", temperature=0.7).with_structured_output(ReadingAdvertExam)
 
+class ReadingAdvertExamWorkflow:
+    def __init__(self):
+        self.llm = ChatGroq(model_name="meta-llama/llama-4-scout-17b-16e-instruct", temperature=0.7).with_structured_output(ReadingAdvertExam)
+        self.chain = prompt_template | self.llm 
 
-
-
-## Define the chain
-chain = prompt_template | llm
-
-
-## Run the chain
-exam = chain.invoke({})
-
-print(exam)
-
+    @traceable(run_type="llm")
+    def generate_exam(self) -> ReadingAdvertExam:
+        exam = self.chain.invoke({})
+        return exam
 
