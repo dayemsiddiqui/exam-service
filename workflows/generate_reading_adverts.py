@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field
 from typing import List
 from langsmith import traceable
 import random
-
+from .html_formatter_workflow import HtmlFormatterWorkflow
+import asyncio
 ## Export the workflow
 __all__ = ["ReadingAdvertExamWorkflow", "ReadingAdvert", "ReadingAdvertExam"]
 ## Load environment variables
@@ -17,8 +18,8 @@ load_dotenv()
 class ReadingAdvert(BaseModel):
     question: str = Field(description="The question to be answered by the reading advert. In German.")
     correct_advert: str = Field(
-    description="The correct advert that matches the question. In German. This should look like a real advert that could be found in a newspaper, magazine, or other media. Format this as a valid HTML document with the following tags: <span>, <br> with tailwind css classes. The text should be formatted as a valid HTML document.")
-    wrong_advert: str = Field(description="A wrong advert that sounds similar and plausible to the question but is not the correct answer. In German. This should look like a real advert that could be found in a newspaper, magazine, or other media. Format this as a valid HTML document with the following tags: <span>, <br> with tailwind css classes. The text should be formatted as a valid HTML document.")
+    description="The correct advert that matches the question. In German. This should look like a real advert that could be found in a newspaper, magazine, or other media. ")
+    wrong_advert: str = Field(description="A wrong advert that sounds similar and plausible to the question but is not the correct answer. In German. This should look like a real advert that could be found in a newspaper, magazine, or other media. ")
     explanation: str = Field(description="An explanation of the correct answer to the question in English. Do not address the wrong answer or any explanation of the wrong answer. IMPORTANT: The explanation should be in English, not German.")
 
 class ReadingAdvertExam(BaseModel):
@@ -38,9 +39,6 @@ prompt_template = PromptTemplate(
     Sometimes you can generate similar questions, to make it more challenging for the examinee to identify the correct answer for each question. But not all questions should be similar.
     The output should be a JSON, structure output as per the given schema.
 
-    IMPORTANT Checklist:
-    - The html should only contain <span>, <br> tags and no other tags.
-    - DO NOT include <html> or <body> tags.
 
 
     This potential list of topics that could be used for the adverts, but dont have to constrained to these topics:
@@ -106,7 +104,33 @@ class ReadingAdvertExamWorkflow:
        
 
     @traceable(run_type="llm")
-    def generate_exam(self) -> ReadingAdvertExam:
+    async def generate_exam(self) -> ReadingAdvertExam:
+        # Note: self.chain.invoke is synchronous, assuming it's okay for the initial exam generation.
+        # If self.chain also supports ainvoke, that could be awaited too.
         exam = self.chain.invoke({"exam_example": self.get_exam_example(), "topic_list": self.get_topic_list()})
+        formatter = HtmlFormatterWorkflow()
+
+        async def format_question_adverts(question):
+            # Format both adverts concurrently for a single question
+            task_correct = formatter.format_html(question.correct_advert)
+            task_wrong = formatter.format_html(question.wrong_advert)
+            
+            formatted_correct, formatted_wrong = await asyncio.gather(
+                task_correct, 
+                task_wrong
+            )
+            
+            question.correct_advert = formatted_correct.formatted_text
+            question.wrong_advert = formatted_wrong.formatted_text
+            # No need to return question as it's modified in-place
+
+        ## Create formatting tasks
+        tasks = []
+        for question in exam.questions:
+            tasks.append(format_question_adverts(question))
+        
+        # Run all question formatting tasks concurrently
+        await asyncio.gather(*tasks)
+                
         return exam
 

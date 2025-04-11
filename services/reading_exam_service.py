@@ -11,8 +11,8 @@ class ReadingExamService:
     def __init__(self):
         self.workflow = ReadingAdvertExamWorkflow()
 
-    def get_advert_section(self) -> ReadingAdvertExamResult:
-        exam: ReadingAdvertExam = self.workflow.generate_exam()
+    async def get_advert_section(self) -> ReadingAdvertExamResult:
+        exam: ReadingAdvertExam = await self.workflow.generate_exam()
         questions = exam.questions
         correct_answers = [advert.correct_advert for advert in questions]
 

@@ -206,5 +206,5 @@ async def generate_reading_exam_advert():
     Generate a reading exam advert for telc B1.
     """
     reading_exam_service = ReadingExamService()
-    exam_result: ReadingAdvertExamResult = reading_exam_service.get_advert_section()
+    exam_result: ReadingAdvertExamResult = await reading_exam_service.get_advert_section()
     return exam_result
