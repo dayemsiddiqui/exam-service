@@ -1,4 +1,4 @@
-from workflows.generate_reading_adverts import ReadingAdvertExamWorkflow, ReadingAdvertExam, ReadingAdvert
+from workflows.reading_advert_workflow import ReadingAdvertExamWorkflow, ReadingAdvertExam, ReadingAdvert
 from pydantic import BaseModel
 from typing import List
 import random

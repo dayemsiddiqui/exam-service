@@ -35,9 +35,10 @@ prompt_template = PromptTemplate(
     The adverts should be similar to real life adverts, as they occur in newspapers, magazines, and other media, in terms of language and style. 
     However they shoud be varied and not all adverts should be about the same product or service.
     Ensure that each time this generation is run, the resulting exam is unique and distinct from any previous generations.
-    Each question (aka advert) should be unique and distinct from any previous questions.
-    Sometimes you can generate similar questions, to make it more challenging for the examinee to identify the correct answer for each question. But not all questions should be similar.
-    The output should be a JSON, structure output as per the given schema.
+    Important Checklist:
+    - Each question (aka advert) should be unique and distinct from any previous questions.
+    - The adverts should be atleast a few sentences long. 
+    - The output should be a JSON, structure output as per the given schema.
 
 
 
@@ -54,7 +55,7 @@ prompt_template = PromptTemplate(
 class ReadingAdvertExamWorkflow:
     def __init__(self):
         self.llm = ChatGroq(model="qwen-qwq-32b", temperature=random.uniform(0.5, 0.7), max_retries=2).with_structured_output(ReadingAdvertExam)
-        self.chain = prompt_template | self.llm 
+        self.prompt = prompt_template.invoke({"exam_example": self.get_exam_example(), "topic_list": self.get_topic_list()})
 
     def get_exam_example(self) -> str:
         with open("examples/advert_exam_example.txt", "r") as file:
@@ -107,7 +108,7 @@ class ReadingAdvertExamWorkflow:
     async def generate_exam(self) -> ReadingAdvertExam:
         # Note: self.chain.invoke is synchronous, assuming it's okay for the initial exam generation.
         # If self.chain also supports ainvoke, that could be awaited too.
-        exam = self.chain.invoke({"exam_example": self.get_exam_example(), "topic_list": self.get_topic_list()})
+        exam = self.llm.invoke(self.prompt)
         formatter = HtmlFormatterWorkflow(additional_instructions="""
             You are formatting an advert for a reading exam. Make sure to format and style the advert such that it looks like a real advert that could be found in a newspaper, magazine, or other media.
             Things like dates, prices, locations as well as details should be formatted and styled to look like a real advert.
@@ -128,12 +129,12 @@ class ReadingAdvertExamWorkflow:
             # No need to return question as it's modified in-place
 
         ## Create formatting tasks
-        tasks = []
-        for question in exam.questions:
-            tasks.append(format_question_adverts(question))
+        # tasks = []
+        # for question in exam.questions:
+        #     tasks.append(format_question_adverts(question))
         
-        # Run all question formatting tasks concurrently
-        await asyncio.gather(*tasks)
+        # # Run all question formatting tasks concurrently
+        # await asyncio.gather(*tasks)
                 
         return exam
 
