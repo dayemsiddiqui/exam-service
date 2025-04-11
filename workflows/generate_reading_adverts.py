@@ -35,8 +35,13 @@ prompt_template = PromptTemplate(
     However they shoud be varied and not all adverts should be about the same product or service.
     Ensure that each time this generation is run, the resulting exam is unique and distinct from any previous generations.
     Each question (aka advert) should be unique and distinct from any previous questions.
-
+    Sometimes you can generate similar questions, to make it more challenging for the examinee to identify the correct answer for each question. But not all questions should be similar.
     The output should be a JSON, structure output as per the given schema.
+
+    IMPORTANT Checklist:
+    - The html should only contain <span>, <br> tags and no other tags.
+    - DO NOT include <html> or <body> tags.
+
 
     This potential list of topics that could be used for the adverts, but dont have to constrained to these topics:
     {topic_list}
@@ -58,7 +63,7 @@ class ReadingAdvertExamWorkflow:
             return file.read()
     
     def get_topic_list(self) -> str:
-        return ", ".join([
+        self.topic_list = [
             "Auto",
             "Haus",
             "Job",
@@ -94,7 +99,10 @@ class ReadingAdvertExamWorkflow:
             "Familie",
             "Freizeit",
             "Gesundheit",
-        ])
+        ]
+        ## Get a random 10 topics from the list
+        topics = random.sample(self.topic_list, 10)
+        return ", ".join(topics)
        
 
     @traceable(run_type="llm")
