@@ -1,4 +1,4 @@
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -45,9 +45,9 @@ class Announcement(BaseModel):
 
 # Initialize the model - Consider llama-3.1-70b-versatile if 8b struggles with consistency
 # Using a slightly lower temperature might help consistency if needed, but 1 is fine for variety.
-model = ChatGroq(
+model = ChatOpenAI(
     # Consider trying 'llama-3.1-70b-versatile' if '8b' struggles with complex instructions
-    model="llama-3.1-8b-instant",
+    model="gpt-4o-mini",
     temperature=0.8, # Slightly reduced temperature for better focus
 ).with_structured_output(Announcement)
 

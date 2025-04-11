@@ -1,4 +1,4 @@
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -37,8 +37,8 @@ class Conversation(BaseModel):
     speakers: List[Speaker] = Field(description="The speakers in the conversation")
 
 
-model = ChatGroq(
-    model="llama-3.1-8b-instant",
+model = ChatOpenAI(
+    model="gpt-4o-mini",
     temperature=0.1,  # Higher temperature for more creative conversations
 ).with_structured_output(Conversation)
 

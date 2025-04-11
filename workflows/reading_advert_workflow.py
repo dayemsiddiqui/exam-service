@@ -1,4 +1,4 @@
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -54,7 +54,7 @@ prompt_template = PromptTemplate(
 
 class ReadingAdvertExamWorkflow:
     def __init__(self):
-        self.llm = ChatGroq(model="qwen-qwq-32b", temperature=random.uniform(0.5, 0.7), max_retries=2).with_structured_output(ReadingAdvertExam)
+        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=random.uniform(0.5, 0.7), max_retries=2).with_structured_output(ReadingAdvertExam)
         self.prompt = prompt_template.invoke({"exam_example": self.get_exam_example(), "topic_list": self.get_topic_list()})
 
     def get_exam_example(self) -> str:
