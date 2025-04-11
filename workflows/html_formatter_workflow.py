@@ -13,16 +13,20 @@ class HtmlFormattedResult(BaseModel):
 
 
 class HtmlFormatterWorkflow:
-    def __init__(self):
+    def __init__(self, additional_instructions: str = ""):
         self.llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0.1).with_structured_output(HtmlFormattedResult)
+        self.additional_instructions = additional_instructions
 
     def prepare_chain(self):
         prompt = PromptTemplate(
             template="""
-            You are an expert HTML formatter. Take the following text and format it using only <span>, <br>, and <div> tags.
+            You are an expert HTML formatter. Take the following text and format it using only <span>, <br>, and <div> and <pre> tags.
             You can use Tailwind CSS classes for styling if desired.
             The output MUST be a valid HTML snippet, without <html> or <body> tags.
             Return ONLY the formatted HTML text matching the required output schema.
+
+            ## Additional Instructions
+            {additional_instructions}
 
             Input Text:
             {text}
@@ -36,5 +40,5 @@ class HtmlFormatterWorkflow:
     @traceable(run_type="llm", name="format_html")
     async def format_html(self, text: str) -> HtmlFormattedResult:
         self.prepare_chain()
-        return await self.chain.ainvoke({"text": text}) 
+        return await self.chain.ainvoke({"text": text, "additional_instructions": self.additional_instructions}) 
    
