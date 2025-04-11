@@ -7,6 +7,8 @@ from langsmith import traceable
 import random
 from .html_formatter_workflow import HtmlFormatterWorkflow
 import asyncio
+from utils.caching import AsyncCachedGenerator # Import the generic cache
+
 ## Export the workflow
 __all__ = ["ReadingAdvertExamWorkflow", "ReadingAdvert", "ReadingAdvertExam"]
 ## Load environment variables
@@ -56,85 +58,45 @@ class ReadingAdvertExamWorkflow:
     def __init__(self):
         self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=random.uniform(0.5, 0.7), max_retries=2).with_structured_output(ReadingAdvertExam)
         self.prompt = prompt_template.invoke({"exam_example": self.get_exam_example(), "topic_list": self.get_topic_list()})
+        # Initialize the generic cache, passing the generation function
+        self._exam_cache = AsyncCachedGenerator[ReadingAdvertExam](
+            generator_func=self._generate_and_format_exam_internal,
+            name="ReadingAdvertExamCache"
+        )
 
     def get_exam_example(self) -> str:
         with open("examples/advert_exam_example.txt", "r") as file:
             return file.read()
     
     def get_topic_list(self) -> str:
-        self.topic_list = [
-            "Auto",
-            "Haus",
-            "Job",
-            "Geld",
-            "Gesundheit",
-            "Reisen",
-            "Mode",
-            "Geschichten",
-            "Kunst",
-            "Musik",
-            "Sport",
-            "Technik",
-            "Natur",
-            "Geschichte",
-            "Geographie",
-            "Politik",
-            "Gesellschaft",
-            "Medizin",
-            "Pädagogik",
-            "Philosophie",
-            "Psychologie",
-            "Religion",
-            "Sprachen",
-            "Wirtschaft",
-            "Wissenschaft",
-            "Restaurants",
-            "Bücher",
-            "Filme",
-            "Musik",
-            "Sport",
-            "Politik",
-            "Hobbys",
-            "Familie",
-            "Freizeit",
+        # This list could be loaded from a file or config if needed
+        topic_list = [
+            "Auto", "Haus", "Job", "Geld", "Gesundheit", "Reisen", "Mode",
+            "Geschichten", "Kunst", "Musik", "Sport", "Technik", "Natur",
+            "Geschichte", "Geographie", "Politik", "Gesellschaft", "Medizin",
+            "Pädagogik", "Philosophie", "Psychologie", "Religion", "Sprachen",
+            "Wirtschaft", "Wissenschaft", "Restaurants", "Bücher", "Filme",
+            "Musik", "Sport", "Politik", "Hobbys", "Familie", "Freizeit",
             "Gesundheit",
         ]
-        ## Get a random 10 topics from the list
-        topics = random.sample(self.topic_list, 10)
+        topics = random.sample(topic_list, min(10, len(topic_list))) # Ensure we don't request more samples than available
         return ", ".join(topics)
        
 
-    @traceable(run_type="llm")
-    async def generate_exam(self) -> ReadingAdvertExam:
-        # Note: self.chain.invoke is synchronous, assuming it's okay for the initial exam generation.
-        # If self.chain also supports ainvoke, that could be awaited too.
-        exam = self.llm.invoke(self.prompt)
-        formatter = HtmlFormatterWorkflow(additional_instructions="""
-            You are formatting an advert for a reading exam. Make sure to format and style the advert such that it looks like a real advert that could be found in a newspaper, magazine, or other media.
-            Things like dates, prices, locations as well as details should be formatted and styled to look like a real advert.
-        """)
+    async def _generate_and_format_exam_internal(self) -> ReadingAdvertExam:
+        """Internal method that performs the actual exam generation and formatting."""
+        # 1. Generate the core exam content
+        exam = await self.llm.ainvoke(self.prompt)
 
-        async def format_question_adverts(question):
-            # Format both adverts concurrently for a single question
-            task_correct = formatter.format_html(question.correct_advert)
-            task_wrong = formatter.format_html(question.wrong_advert)
-            
-            formatted_correct, formatted_wrong = await asyncio.gather(
-                task_correct, 
-                task_wrong
-            )
-            
-            question.correct_advert = formatted_correct.formatted_text
-            question.wrong_advert = formatted_wrong.formatted_text
-            # No need to return question as it's modified in-place
-
-        ## Create formatting tasks
-        # tasks = []
-        # for question in exam.questions:
-        #     tasks.append(format_question_adverts(question))
-        
-        # # Run all question formatting tasks concurrently
-        # await asyncio.gather(*tasks)
-                
         return exam
+
+    @traceable(run_type="llm") # Trace the public-facing method
+    async def generate_exam(self) -> ReadingAdvertExam:
+        """Generates or retrieves a cached Reading Advert Exam."""
+        # Delegate getting data to the caching mechanism
+        return await self._exam_cache.get_data()
+
+    async def wait_for_initial_load(self):
+        """Optional: Allows waiting until the first exam is generated and cached."""
+        await self._exam_cache.wait_for_initial_generation()
 
