@@ -108,7 +108,7 @@ class ReadingAdvertExamWorkflow:
         # Note: self.chain.invoke is synchronous, assuming it's okay for the initial exam generation.
         # If self.chain also supports ainvoke, that could be awaited too.
         exam = self.chain.invoke({"exam_example": self.get_exam_example(), "topic_list": self.get_topic_list()})
-        formatter = HtmlFormatterWorkflow(additional_description="""
+        formatter = HtmlFormatterWorkflow(additional_instructions="""
             You are formatting an advert for a reading exam. Make sure to format and style the advert such that it looks like a real advert that could be found in a newspaper, magazine, or other media.
             Things like dates, prices, locations as well as details should be formatted and styled to look like a real advert.
         """)
