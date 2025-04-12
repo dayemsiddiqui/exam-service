@@ -7,7 +7,6 @@ from langsmith import traceable
 import random
 from .html_formatter_workflow import HtmlFormatterWorkflow
 import asyncio
-from utils.caching import AsyncCachedGenerator # Import the generic cache
 
 ## Export the workflow
 __all__ = ["ReadingAdvertExamWorkflow", "ReadingAdvert", "ReadingAdvertExam"]
@@ -57,12 +56,6 @@ prompt_template = PromptTemplate(
 class ReadingAdvertExamWorkflow:
     def __init__(self):
         self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=random.uniform(0.5, 0.7), max_retries=2).with_structured_output(ReadingAdvertExam)
-        self.prompt = prompt_template.invoke({"exam_example": self.get_exam_example(), "topic_list": self.get_topic_list()})
-        # Initialize the generic cache, passing the generation function
-        self._exam_cache = AsyncCachedGenerator[ReadingAdvertExam](
-            generator_func=self._generate_and_format_exam_internal,
-            name="ReadingAdvertExamCache"
-        )
 
     def get_exam_example(self) -> str:
         with open("examples/advert_exam_example.txt", "r") as file:
@@ -82,21 +75,21 @@ class ReadingAdvertExamWorkflow:
         topics = random.sample(topic_list, min(10, len(topic_list))) # Ensure we don't request more samples than available
         return ", ".join(topics)
        
-
-    async def _generate_and_format_exam_internal(self) -> ReadingAdvertExam:
-        """Internal method that performs the actual exam generation and formatting."""
-        # 1. Generate the core exam content
-        exam = await self.llm.ainvoke(self.prompt)
-
-        return exam
-
-    @traceable(run_type="llm") # Trace the public-facing method
+    @traceable(run_type="llm")
     async def generate_exam(self) -> ReadingAdvertExam:
-        """Generates or retrieves a cached Reading Advert Exam."""
-        # Delegate getting data to the caching mechanism
-        return await self._exam_cache.get_data()
-
-    async def wait_for_initial_load(self):
-        """Optional: Allows waiting until the first exam is generated and cached."""
-        await self._exam_cache.wait_for_initial_generation()
+        """Generates a new Reading Advert Exam on each call."""
+        # Invoke the prompt template with current data
+        prompt_data = prompt_template.invoke({
+            "exam_example": self.get_exam_example(), 
+            "topic_list": self.get_topic_list()
+        })
+        
+        # Generate the exam directly without caching
+        exam = await self.llm.ainvoke(prompt_data)
+        
+        # Add formatting if needed (commented out for now)
+        # formatter = HtmlFormatterWorkflow(additional_instructions="...")
+        # Format questions here if needed
+        
+        return exam
 
