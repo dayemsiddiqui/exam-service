@@ -19,6 +19,7 @@ from workflows.generate_announcements import Announcement
 from workflows.generate_interview import Interview
 from fastapi.middleware.cors import CORSMiddleware
 from services.reading_exam_service import ReadingExamService, ReadingAdvertExamResult
+from services.reading_match_titles_service import ReadingMatchTitlesService, ReadingMatchTitleResult
 app = FastAPI(
     title="Translation API",
     description="API for translating words in context",
@@ -207,4 +208,17 @@ async def generate_reading_exam_advert():
     """
     reading_exam_service = ReadingExamService()
     exam_result: ReadingAdvertExamResult = await reading_exam_service.get_advert_section()
+    return exam_result
+
+
+@app.get(
+    "/reading-exam/match-titles",
+    response_model=ReadingMatchTitleResult,
+    summary="Generate a reading exam match titles section",
+    description="Generates a Telc B2 Leseverstehen Teil 1 exam matching titles to a text. Returns the paragraph, two title options, and the correct answer reference.",
+    response_description="Returns the text, title options, and question info.",
+)
+async def generate_reading_exam_match_titles():
+    reading_match_titles_service = ReadingMatchTitlesService()
+    exam_result: ReadingMatchTitleResult = await reading_match_titles_service.get_match_title()
     return exam_result
