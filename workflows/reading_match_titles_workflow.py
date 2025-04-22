@@ -27,6 +27,13 @@ prompt_template = PromptTemplate(
     Generate a Telc B2 Leseverstehen Teil 1 exam. Feel free to use advance B2 or C1 level vocabulary. The text should be of real world difficulty.
     Important Checklist:
     - The output should be a JSON, structure output as per the given schema.
+    - The wrong title should be extremely plausible, and should be very similar to the correct title.
+    
+    
+    SUPER IMPORTANT:
+    - It should be hard/difficult to guess the correct title, just by keyword matching.
+    - The title should not contain obvious keywords from the text, which would make it too easy to guess.
+    - The examinee must pay attention to the small details of the text, in order to figure out the correct title.
 
 
 
