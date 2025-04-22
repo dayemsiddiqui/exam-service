@@ -24,14 +24,13 @@ class ReadingMatchTitle(BaseModel):
 ## Define the prompt template
 prompt_template = PromptTemplate(
     template="""
-    Generate a Telc B2 Leseverstehen Teil 1 exam. Feel free to use advance B2 or C1 level vocabulary. 
-    The text should be of real world difficulty, like that occurring in newspapers, magazines, articles, blogs, reports or other media.
+    Generate a Telc B2 Leseverstehen Teil 1 exam. Feel free to use advance B2 or C1 level vocabulary. The text should be of real world difficulty.
     Important Checklist:
     - The output should be a JSON, structure output as per the given schema.
 
 
 
-    This potential list of topics that could be used for the text, but dont have to constrained to these topics:
+    The topic of the text should be:
     {topic_list}
 
     """
@@ -40,21 +39,76 @@ prompt_template = PromptTemplate(
 
 class ReadingMatchTitleWorkflow:
     def __init__(self):
-        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=random.uniform(0.5, 0.7), max_retries=2).with_structured_output(ReadingMatchTitle)
+        self.llm = ChatOpenAI(model="gpt-4.1-nano-2025-04-14", temperature=random.uniform(0.5, 0.7), max_retries=2).with_structured_output(ReadingMatchTitle)
 
     def get_topic_list(self) -> str:
-        # This list could be loaded from a file or config if needed
+        # Diese Liste könnte bei Bedarf aus einer Datei oder Konfiguration geladen werden
         topic_list = [
-            "Auto", "Haus", "Job", "Geld", "Gesundheit", "Reisen", "Mode",
-            "Geschichten", "Kunst", "Musik", "Sport", "Technik", "Natur",
-            "Geschichte", "Geographie", "Politik", "Gesellschaft", "Medizin",
-            "Pädagogik", "Philosophie", "Psychologie", "Religion", "Sprachen",
-            "Wirtschaft", "Wissenschaft", "Restaurants", "Bücher", "Filme",
-            "Musik", "Sport", "Politik", "Hobbys", "Familie", "Freizeit",
-            "Gesundheit",
+            # Gesellschaft & Kultur
+            "Stadtentwicklung", "Social-Media-Trends", "Kulturerbe-Erhaltung", 
+            "Demografischer Wandel", "Menschenrechtsfragen", "Ethische Dilemmata der modernen Gesellschaft",
+            "Gleichstellungsbewegungen", "Einwanderungspolitik", "Krisen im öffentlichen Gesundheitswesen", 
+            "Ehrenamt und gemeinnützige Arbeit", "Minderheitensprachen", "Volksbräuche",
+            "Interkulturelle Kommunikation", "Generationenkonflikte", "Urbane Lebensstile",
+            "Soziale Ungleichheit", "Datenschutz im digitalen Zeitalter", "Fake News und Medienkompetenz",
+
+            # Wissenschaft & Technologie
+            "Ethik der künstlichen Intelligenz", "Erneuerbare Energiequellen", "Raumfahrtmissionen",
+            "Fortschritte in der Gentechnik", "Cybersicherheitsbedrohungen", "Quantencomputing-Konzepte",
+            "Anwendungen der Biotechnologie", "Entwicklungen in der Nanotechnologie", "Nachhaltige Landwirtschaft",
+            "Auswirkungen des Klimawandels", "Ozeanografische Entdeckungen", "Durchbrüche in der Teilchenphysik",
+            "Robotik im Alltag", "3D-Druck Technologien", "Big Data Analyse", "Smart Home Systeme",
+            "Medizintechnische Innovationen", "Batterietechnologien",
+
+            # Kunst & Geisteswissenschaften
+            "Zeitgenössische Kunstbewegungen", "Geschichte des Kinos", "Komponisten klassischer Musik",
+            "Moderne Architekturstile", "Klassiker der Weltliteratur", "Philosophische Debatten",
+            "Archäologische Entdeckungen", "Linguistische Theorien", "Mythologie und Folklore",
+            "Darstellende Künste (Theater)", "Fotografietechniken", "Digitale Kunstschaffung",
+            "Deutsche Literaturgeschichte", "Museumspädagogik", "Restaurierung historischer Artefakte",
+            "Musikethnologie", "Filmtheorie", "Ästhetik",
+
+            # Wirtschaft & Finanzen
+            "Globales Lieferkettenmanagement", "Regulierung von Kryptowährungen", "Verhaltensökonomie",
+            "Startup-Ökosysteme", "Internationale Handelsabkommen", "Soziale Unternehmensverantwortung (CSR)",
+            "Marketingstrategien im digitalen Zeitalter", "Zukunft der Arbeit", "Modelle der Kreislaufwirtschaft",
+            "Mikrofinanzinitiativen", "Volatilität an der Börse", "E-Commerce-Trends",
+            "Auswirkungen der Globalisierung", "Steuerpolitik", "Wirtschaftsethik", "Insolvenzrecht",
+            "Sharing Economy", "Industrie 4.0",
+
+            # Gesundheit & Lebensstil
+            "Bewusstsein für psychische Gesundheit", "Ernährungswissenschaftliche Forschung", "Alternative Heilmethoden",
+            "Fitnesstechnologie", "Schlafforschung", "Präventivmedizin",
+            "Psychologie des Glücks", "Stressbewältigungstechniken", "Digital Detox",
+            "Achtsamkeit und Meditation", "Sucht-Hilfsprogramme", "Gesundes Altern",
+            "Work-Life-Balance", "Patientenrechte", "Telemedizin", "Gesundheitssystemvergleich",
+            "Impfforschung", "Sportmedizin",
+
+            # Weltgeschehen & Geschichte
+            "Geopolitische Konflikte", "Antike Zivilisationen", "Die Renaissance",
+            "Geschichte der Weltkriege", "Postkoloniale Studien", "Theorien internationaler Beziehungen",
+            "Spionage und Nachrichtendienste", "Revolutionen und soziale Umbrüche",
+            "Historische Denkmäler und Stätten", "Diplomatie und Verhandlungen", "Ära des Kalten Krieges",
+            "Geschichte der Europäischen Union", "Deutsche Wiedervereinigung", "Aufklärungsepoche",
+            "Mittelalterliche Geschichte", "Industrielle Revolution", "Menschenrechtsgeschichte",
+
+            # Natur & Umwelt
+            "Erhaltung der Biodiversität", "Herausforderungen der Entwaldung", "Wildtierschutz",
+            "Meeresbiologische Studien", "Geologische Formationen", "Extreme Wetterphänomene",
+            "Projekte zur Wiederherstellung von Ökosystemen", "Gefährdete Arten", "Nationalparksysteme",
+            "Städtische Grünflächen", "Maßnahmen zur Kontrolle der Umweltverschmutzung", "Vulkanologie",
+            "Permakultur", "Wasserressourcenmanagement", "Lichtverschmutzung", "Bodenkunde",
+            "Klimagerechtigkeit", "Umweltbildung",
+
+            # Verschiedenes & Nischenthemen
+            "Geschichte der Kochkunst", "Nachhaltigkeit in der Modebranche", "Wettbewerbsfähiges Gaming (E-Sport)",
+            "Reise-Vlogging", "Heimwerken (DIY)", "Urban Gardening", "Brettspiel-Design",
+            "Amateurfunkbetrieb", "Sammeln seltener Bücher", "Astrofotografie", "Ahnenforschung (Genealogie)",
+            "Kaffee Kultur", "Minimalismus als Lebensstil", "Restaurierung von Oldtimern", "Podcast Produktion",
+            "Bierbraukunst", "Kalligraphie"
         ]
-        topics = random.sample(topic_list, min(10, len(topic_list))) # Ensure we don't request more samples than available
-        return ", ".join(topics)
+        # Zufällig ein Thema auswählen
+        return random.choice(topic_list)
        
     @traceable(run_type="llm")
     async def generate_match_title(self) -> ReadingMatchTitle:
