@@ -7,6 +7,11 @@ from services.listening_exam_announcement_service import (
     ListeningExamAnnouncementService,
 )
 from services.interview_service import InterviewService
+from services.sentence_translation_service import (
+    SentenceTranslationService,
+    SentenceTranslationRequest,
+    SentenceTranslationResponse,
+)
 from api.translations import TranslateRequest, TranslateResponse
 from api.listening_exam import (
     ListeningExamResponse,
@@ -49,6 +54,9 @@ listening_exam_announcement_service = ListeningExamAnnouncementService()
 
 # Create interview service instance
 interview_service = InterviewService()
+
+# Create sentence translation service instance
+sentence_translation_service = SentenceTranslationService()
 
 
 @app.get("/")
@@ -222,3 +230,39 @@ async def generate_reading_exam_match_titles():
     reading_match_titles_service = ReadingMatchTitlesService()
     exam_result: ReadingMatchTitleResult = await reading_match_titles_service.get_match_title()
     return exam_result
+
+
+# --- New Sentence Translation Endpoints ---
+
+@app.post(
+    "/translate/en-to-de",
+    response_model=SentenceTranslationResponse,
+    summary="Translate English sentence to German",
+    tags=["Sentence Translation"],
+)
+async def translate_english_to_german(request: SentenceTranslationRequest):
+    """Translates an English sentence to German using the SentenceTranslationService."""
+    try:
+        translation = await sentence_translation_service.translate_en_to_de(request.text)
+        return SentenceTranslationResponse(translation=translation)
+    except Exception as e:
+        # Log the exception details here if needed
+        print(f"Error in /translate/en-to-de: {e}")
+        raise HTTPException(status_code=500, detail=f"Translation failed: {e}")
+
+
+@app.post(
+    "/translate/de-to-en",
+    response_model=SentenceTranslationResponse,
+    summary="Translate German sentence to English",
+    tags=["Sentence Translation"],
+)
+async def translate_german_to_english(request: SentenceTranslationRequest):
+    """Translates a German sentence to English using the SentenceTranslationService."""
+    try:
+        translation = await sentence_translation_service.translate_de_to_en(request.text)
+        return SentenceTranslationResponse(translation=translation)
+    except Exception as e:
+        # Log the exception details here if needed
+        print(f"Error in /translate/de-to-en: {e}")
+        raise HTTPException(status_code=500, detail=f"Translation failed: {e}")
