@@ -48,7 +48,8 @@ class ReadingMatchTitlesService:
             all_titles_list.append(question.wrong_title)
 
         # Prepare title options with hashed IDs and shuffle
-        titles = [TitleOption(id=self.to_hash_id(t), title=t) for t in all_titles_list]
+        unique_titles = list(set(all_titles_list))
+        titles = [TitleOption(id=self.to_hash_id(t), title=t) for t in unique_titles]
         random.shuffle(titles)
 
         return ReadingMatchTitleResult(questions=questions_list, titles=titles)
