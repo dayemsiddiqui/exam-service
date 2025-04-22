@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List
 import random
 import hashlib
+import asyncio
 
 class TitleOption(BaseModel):
     id: str
@@ -10,7 +11,7 @@ class TitleOption(BaseModel):
 
 class MatchTitleQuestion(BaseModel):
     text: str
-    correct_title: str
+    correct_title_id: str
     explanation: str
 
 class ReadingMatchTitleResult(BaseModel):
@@ -25,22 +26,29 @@ class ReadingMatchTitlesService:
         return hashlib.sha256(text.encode()).hexdigest()
 
     async def get_match_title(self) -> ReadingMatchTitleResult:
-        question: ReadingMatchTitle = await self.workflow.generate_match_title()
-        text = question.text
-        correct_title = question.correct_title
-        wrong_title = question.wrong_title
-        explanation = question.explanation
-
-        # Prepare title options and shuffle
-        titles_list = [correct_title, wrong_title]
-        titles = [TitleOption(id=self.to_hash_id(t), title=t) for t in titles_list]
-        random.shuffle(titles)
-
-        # Prepare the question object
-        question = MatchTitleQuestion(
-            text=text,
-            correct_title=correct_title,
-            explanation=explanation,
+        # Generate 5 questions in parallel
+        generated_questions: List[ReadingMatchTitle] = await asyncio.gather(
+            *[self.workflow.generate_match_title() for _ in range(5)]
         )
 
-        return ReadingMatchTitleResult(questions=[question], titles=titles)
+        questions_list: List[MatchTitleQuestion] = []
+        all_titles_list: List[str] = []
+
+        for question in generated_questions:
+            # Collect question details
+            questions_list.append(
+                MatchTitleQuestion(
+                    text=question.text,
+                    correct_title_id=self.to_hash_id(question.correct_title),
+                    explanation=question.explanation,
+                )
+            )
+            # Collect titles
+            all_titles_list.append(question.correct_title)
+            all_titles_list.append(question.wrong_title)
+
+        # Prepare title options with hashed IDs and shuffle
+        titles = [TitleOption(id=self.to_hash_id(t), title=t) for t in all_titles_list]
+        random.shuffle(titles)
+
+        return ReadingMatchTitleResult(questions=questions_list, titles=titles)
