@@ -25,6 +25,7 @@ from workflows.generate_interview import Interview
 from fastapi.middleware.cors import CORSMiddleware
 from services.reading_exam_service import ReadingExamService, ReadingAdvertExamResult
 from services.reading_match_titles_service import ReadingMatchTitlesService, ReadingMatchTitleResult
+from services.writing_exam_service import WritingExamService, WritingExam
 app = FastAPI(
     title="Translation API",
     description="API for translating words in context",
@@ -230,6 +231,23 @@ async def generate_reading_exam_match_titles():
     reading_match_titles_service = ReadingMatchTitlesService()
     exam_result: ReadingMatchTitleResult = await reading_match_titles_service.get_match_title()
     return exam_result
+
+
+@app.get(
+    "/writing-exam",
+    response_model=WritingExam,
+    summary="Generate a writing exam letter",
+    description="Generates a Telc B1 letter writing exam in German, returning the letter stimulus and four task points.",
+    response_description="Returns the letter and task points.",
+)
+async def generate_writing_exam():
+    """
+    Generate a letter writing exam for telc B1.
+    Returns a WritingExam object containing the letter and four tasks.
+    """
+    writing_exam_service = WritingExamService()
+    exam: WritingExam = await writing_exam_service.get_writing_exam()
+    return exam
 
 
 # --- New Sentence Translation Endpoints ---
