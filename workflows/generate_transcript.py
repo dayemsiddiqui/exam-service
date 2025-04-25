@@ -53,7 +53,8 @@ def generate_listening_exam_transcript(topic: str) -> Conversation:
     exam_context = f"""
     Exam Context:
     The topic of the exam is "{topic}".
-    Generate a conversation with exactly 5 speakers giving their opinions on this topic.
+    Generate a conversation with exactly 5 (IMPORTANT: 5) speakers giving their opinions on this topic.
+
 
     For each speaker, you must provide:
     1. A name for the speaker
@@ -73,7 +74,7 @@ def generate_listening_exam_transcript(topic: str) -> Conversation:
                 "name": "Anna Schmidt",
                 "gender": "female",
                 "opinion": "Ich finde das sehr wichtig...", # Opinion in German about the {topic}
-                "question": "Anna findet, dass man ...? # Question in German",
+                "question": "Anna findet, dass man ...? ",
                 "correct_answer": false # true or false
                 "explanation": "The correct answer is false because ... # Explanation in English",
                 "english_translation": "Anna thinks that ... # English translation of the opinion"
