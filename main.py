@@ -26,6 +26,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from services.reading_exam_service import ReadingExamService, ReadingAdvertExamResult
 from services.reading_match_titles_service import ReadingMatchTitlesService, ReadingMatchTitleResult
 from services.writing_exam_service import WritingExamService, WritingExam
+from services.writing_review_service import WritingReviewService
+from workflows.writing_review_workflow import UserLetterRequest, WrittenExamEvaluation
 app = FastAPI(
     title="Translation API",
     description="API for translating words in context",
@@ -248,6 +250,27 @@ async def generate_writing_exam():
     writing_exam_service = WritingExamService()
     exam: WritingExam = await writing_exam_service.get_writing_exam()
     return exam
+
+
+# Insert writing review evaluation endpoint
+@app.post(
+    "/writing-exam/review",
+    response_model=WrittenExamEvaluation,
+    summary="Evaluate a writing exam response",
+    tags=["Writing Review"],
+    description="Evaluates a user's written response to the writing exam question and returns corrections.",
+)
+async def evaluate_written_exam(request: UserLetterRequest):
+    """
+    Evaluates the user's response to the writing exam question and returns corrections.
+    """
+    try:
+        writing_review_service = WritingReviewService()
+        evaluation: WrittenExamEvaluation = await writing_review_service.evaluate_written_exam(request)
+        return evaluation
+    except Exception as e:
+        print(f"Error in /writing-exam/review: {e}")
+        raise HTTPException(status_code=500, detail=f"Writing review failed: {e}")
 
 
 # --- New Sentence Translation Endpoints ---
