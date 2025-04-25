@@ -34,12 +34,14 @@ class Speaker(BaseModel):
 class Conversation(BaseModel):
     """Structured output for a conversation."""
 
-    speakers: List[Speaker] = Field(description="The speakers in the conversation")
+    speakers: List[Speaker] = Field(
+        description="A list containing exactly 5 speakers, no more and no less."
+    )
 
 
 model = ChatOpenAI(
     model="gpt-4.1-nano-2025-04-14",
-    temperature=0.1,  # Higher temperature for more creative conversations
+    temperature=0.3,  # Higher temperature for more creative conversations
 ).with_structured_output(Conversation)
 
 
@@ -54,7 +56,9 @@ def generate_listening_exam_transcript(topic: str) -> Conversation:
     Exam Context:
     The topic of the exam is "{topic}".
     Generate a conversation with exactly 5 (IMPORTANT: 5) speakers giving their opinions on this topic.
-
+    The exam/conversation should contain exactly 5 speakers/questions not more not less.
+    The TELC B1 exam contains 5 speakers/questions expressing their opinions on the topic.
+    Therefore you should also include exactly 5 speakers/questions in the conversation list.
 
     For each speaker, you must provide:
     1. A name for the speaker
@@ -65,7 +69,10 @@ def generate_listening_exam_transcript(topic: str) -> Conversation:
     6. An explanation of the correct answer to the question in English
     7. English translation of the speaker's opinion
 
-    Note ensure that some answers are true and some are false.
+    IMPORTANT:
+    - Ensure that some answers are true and some are false.
+    - Ensure that you generate exactly 5 questions not more not less.
+    - THE FINAL LIST MUST CONTAIN EXACTLY 5 SPEAKERS. THIS IS A STRICT REQUIREMENT.
 
     Example structure:
     {{
@@ -79,7 +86,7 @@ def generate_listening_exam_transcript(topic: str) -> Conversation:
                 "explanation": "The correct answer is false because ... # Explanation in English",
                 "english_translation": "Anna thinks that ... # English translation of the opinion"
             }},
-            // ... more speakers ...
+            // ... more speakers - remember: exactly 5 speakers must be generated in this list ...
         ]
     }}
 
