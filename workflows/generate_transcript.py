@@ -38,7 +38,7 @@ class Conversation(BaseModel):
 
 
 model = ChatOpenAI(
-    model="gpt-4o-mini",
+    model="gpt-4.1-nano-2025-04-14",
     temperature=0.1,  # Higher temperature for more creative conversations
 ).with_structured_output(Conversation)
 
