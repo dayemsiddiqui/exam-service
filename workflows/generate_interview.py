@@ -73,6 +73,7 @@ Generate a German B1 level listening exam interview with the following component
 
 IMPORTANT NOTES:
 - Both the interviewer and interviewee must have authentic German names, not just "Interviewer" as a placeholder
+- Ensure the interviewer and interviewee are not the same person/gender
 - The interview should be SIGNIFICANTLY LONGER than a typical dialogue, with at least 50 total segments (25 each for interviewer and interviewee)
 - Each segment should contain 1-3 sentences, totaling approximately 100 sentences across the entire conversation
 - The interviewer should ask detailed questions about the interviewee's life, career, and personal experiences

@@ -12,6 +12,16 @@ from services.sentence_translation_service import (
     SentenceTranslationRequest,
     SentenceTranslationResponse,
 )
+from services.audio_listening_interview_exam_service import AudioListeningInterviewExamService
+from workflows.generate_transcript import Conversation
+from workflows.generate_announcements import Announcement
+from workflows.generate_interview import Interview, ConversationSegment
+from fastapi.middleware.cors import CORSMiddleware
+from services.reading_exam_service import ReadingExamService, ReadingAdvertExamResult
+from services.reading_match_titles_service import ReadingMatchTitlesService, ReadingMatchTitleResult
+from services.writing_exam_service import WritingExamService, WritingExam
+from services.writing_review_service import WritingReviewService
+from workflows.writing_review_workflow import UserLetterRequest, WrittenExamEvaluation
 from api.translations import TranslateRequest, TranslateResponse
 from api.listening_exam import (
     ListeningExamResponse,
@@ -19,15 +29,7 @@ from api.listening_exam import (
     ListeningExamAnnouncementResponse,
     InterviewResponse,
 )
-from workflows.generate_transcript import Conversation
-from workflows.generate_announcements import Announcement
-from workflows.generate_interview import Interview
-from fastapi.middleware.cors import CORSMiddleware
-from services.reading_exam_service import ReadingExamService, ReadingAdvertExamResult
-from services.reading_match_titles_service import ReadingMatchTitlesService, ReadingMatchTitleResult
-from services.writing_exam_service import WritingExamService, WritingExam
-from services.writing_review_service import WritingReviewService
-from workflows.writing_review_workflow import UserLetterRequest, WrittenExamEvaluation
+
 app = FastAPI(
     title="Translation API",
     description="API for translating words in context",
@@ -60,6 +62,9 @@ interview_service = InterviewService()
 
 # Create sentence translation service instance
 sentence_translation_service = SentenceTranslationService()
+
+# Create audio listening interview exam service instance
+audio_listening_interview_exam_service = AudioListeningInterviewExamService()
 
 
 @app.get("/")
@@ -204,6 +209,29 @@ async def generate_interview():
         print(f"Error generating interview: {e}")
         # Raise an HTTPException to return a proper error response to the client
         raise HTTPException(status_code=500, detail=f"Failed to generate interview: {e}")
+
+
+# New endpoint for streaming interview audio using OpenAI TTS
+@app.post(
+    "/listening-exam/interview/audio",
+    response_class=StreamingResponse,
+    summary="Generate audio for an interview segment using OpenAI",
+    description="Generates streaming audio for a given interview segment (text, speaker gender) using OpenAI TTS.",
+    response_description="Returns the generated audio as a streaming response.",
+)
+async def generate_interview_segment_audio(segment: ConversationSegment):
+    """
+    Generate streaming audio for a single interview segment using OpenAI.
+    Returns the audio stream.
+    """
+    try:
+        audio_iterator = audio_listening_interview_exam_service.generate_streaming_audio(
+            segment=segment
+        )
+        return StreamingResponse(audio_iterator, media_type="audio/mpeg")
+    except Exception as e:
+        print(f"Error in OpenAI audio streaming endpoint: {e}") # Log error
+        raise HTTPException(status_code=500, detail=f"Failed to generate audio stream: {e}")
 
 
 @app.get(
