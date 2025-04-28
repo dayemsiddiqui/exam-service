@@ -29,6 +29,7 @@ from api.listening_exam import (
     ListeningExamAnnouncementResponse,
     InterviewResponse,
 )
+from typing import List
 
 app = FastAPI(
     title="Translation API",
@@ -215,18 +216,19 @@ async def generate_interview():
 @app.post(
     "/listening-exam/interview/audio",
     response_class=StreamingResponse,
-    summary="Generate audio for an interview segment using OpenAI",
-    description="Generates streaming audio for a given interview segment (text, speaker gender) using OpenAI TTS.",
-    response_description="Returns the generated audio as a streaming response.",
+    summary="Generate concatenated audio for a list of interview segments using OpenAI",
+    description="Generates streaming audio for a list of interview segments (text, speaker gender) using OpenAI TTS and returns the concatenated audio stream.",
+    response_description="Returns the concatenated audio as a streaming response.",
 )
-async def generate_interview_segment_audio(segment: ConversationSegment):
+async def generate_interview_audio(segments: List[ConversationSegment]):
     """
-    Generate streaming audio for a single interview segment using OpenAI.
-    Returns the audio stream.
+    Generate concatenated streaming audio for a list of interview segments using OpenAI.
+    Accepts a list of ConversationSegment objects in the request body.
+    Returns the concatenated audio stream.
     """
     try:
-        audio_iterator = audio_listening_interview_exam_service.generate_streaming_audio(
-            segment=segment
+        audio_iterator = audio_listening_interview_exam_service.generate_concatenated_streaming_audio(
+            segments=segments
         )
         return StreamingResponse(audio_iterator, media_type="audio/mpeg")
     except Exception as e:
