@@ -41,7 +41,7 @@ class AudioListeningInterviewExamService:
         try:
             voice = self.get_voice(segment.speaker_gender)
             response = self.client.audio.speech.create(
-                model="tts-1",
+                model="gpt-4o-mini-tts",
                 voice=voice,
                 input=segment.text,
                 response_format="mp3"
