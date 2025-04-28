@@ -1,4 +1,4 @@
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -15,7 +15,7 @@ load_dotenv()
 # New model for Interviewer
 class Interviewer(BaseModel):
     """Details about the interviewer."""
-    name: str = Field(description="The name of the interviewer.", default="Interviewer")
+    name: str = Field(description="The name of the interviewer.")
     gender: str = Field(description="The gender of the interviewer (male/female).")
 
 
@@ -50,8 +50,8 @@ class Interview(BaseModel):
 
 
 # Initialize the model with structured output
-model = ChatGroq(
-    model="meta-llama/llama-4-scout-17b-16e-instruct",
+model = ChatOpenAI(
+    model="gpt-4.1-nano-2025-04-14",
     temperature=0.7
 ).with_structured_output(Interview)
 
