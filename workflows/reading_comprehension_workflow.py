@@ -35,8 +35,11 @@ prompt_template = PromptTemplate(
     Text Requirements:
     - The text should be in German and discuss the topic: {topic}.
     - The text must consist of exactly 5 paragraphs.
+    - The total length of the text must be between 1500 and 2000 words in total. 
+    - Each paragraph should be substantial, with at least 300 words, to ensure a detailed, in-depth article akin to a long newspaper feature or blog post.
+    - Please ensure you meet these word counts strictly; too short or too brief content will not be accepted.
     - The language level can incorporate B2 or C1 vocabulary to increase difficulty.
-    - The overall text should be cohesive and well-structured.
+    - The overall text should be cohesive and well-structured, resembling a real newspaper article or blog post in style.
 
     Question Requirements:
     - Generate exactly one multiple-choice question for each of the 5 paragraphs. Associate each question with its paragraph using a 0-based index (0 for the first paragraph, 4 for the last).
@@ -49,8 +52,8 @@ prompt_template = PromptTemplate(
 
     Output Format:
     - Structure the output as a JSON object according to the provided schema.
-    - Ensure the `full_text` contains the complete 5-paragraph text.
-    - Ensure the `questions` list has exactly 5 entries, corresponding to paragraphs 0 through 4, each following the `ReadingComprehensionQuestion` schema with `correct_answer` and a list of two `wrong_answers`.
+    - Ensure the `full_text` contains the complete 5-paragraph text meeting the word count requirements.
+    - Ensure the `questions` list has exactly 5 entries, corresponding to paragraphs 0 through 4, each following the `ReadingComprehensionQuestion` schema with `correct_answer` and two `wrong_answers`.
 
     Topic for this exam: {topic}
     """
