@@ -19,6 +19,7 @@ from workflows.generate_interview import Interview, ConversationSegment
 from fastapi.middleware.cors import CORSMiddleware
 from services.reading_exam_service import ReadingExamService, ReadingAdvertExamResult
 from services.reading_match_titles_service import ReadingMatchTitlesService, ReadingMatchTitleResult
+from services.reading_comprehension_service import ReadingComprehensionService, ReadingComprehensionResult
 from services.writing_exam_service import WritingExamService, WritingExam
 from services.writing_review_service import WritingReviewService
 from workflows.writing_review_workflow import UserLetterRequest, WrittenExamEvaluation
@@ -66,6 +67,14 @@ sentence_translation_service = SentenceTranslationService()
 
 # Create audio listening interview exam service instance
 audio_listening_interview_exam_service = AudioListeningInterviewExamService()
+
+# Create reading exam service instance
+# No longer needed here as instantiated within endpoints
+# reading_exam_service = ReadingExamService()
+# reading_match_titles_service = ReadingMatchTitlesService()
+
+# Add instance for the new service
+reading_comprehension_service = ReadingComprehensionService()
 
 
 @app.get("/")
@@ -262,6 +271,22 @@ async def generate_reading_exam_advert():
 async def generate_reading_exam_match_titles():
     reading_match_titles_service = ReadingMatchTitlesService()
     exam_result: ReadingMatchTitleResult = await reading_match_titles_service.get_match_title()
+    return exam_result
+
+
+@app.get(
+    "/reading-exam/comprehension",
+    response_model=ReadingComprehensionResult,
+    summary="Generate a reading comprehension section",
+    description="Generates a Telc B1 Leseverstehen Teil 1 exam component with a 5-paragraph text and 5 multiple-choice questions.",
+    response_description="Returns the text, topic, and questions with shuffled options.",
+)
+async def generate_reading_exam_comprehension():
+    """
+    Generate a reading comprehension section for telc B1.
+    Returns the topic, full text, and 5 questions with shuffled answer options.
+    """
+    exam_result: ReadingComprehensionResult = await reading_comprehension_service.get_comprehension_section()
     return exam_result
 
 
