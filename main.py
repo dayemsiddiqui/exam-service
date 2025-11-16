@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Body, Query, HTTPException
 from fastapi.responses import StreamingResponse
 import os
+import sentry_sdk
 from services.translation_service import TranslationService
 from services.listening_exam_service import ListeningExamService
 from services.listening_exam_announcement_service import (
@@ -31,6 +32,24 @@ from api.listening_exam import (
     InterviewResponse,
 )
 from typing import List
+
+# Initialize Sentry SDK
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN", "https://d81bab6822867e2f6c7a0f2a87a84262@o4507442318475264.ingest.us.sentry.io/4510374869729280"),
+    # Add data like request headers and IP for users
+    send_default_pii=True,
+    # Enable sending logs to Sentry
+    enable_logs=True,
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    # Set profile_session_sample_rate to 1.0 to profile 100%
+    # of profile sessions.
+    profile_session_sample_rate=1.0,
+    # Set profile_lifecycle to "trace" to automatically
+    # run the profiler on when there is an active transaction
+    profile_lifecycle="trace",
+)
 
 app = FastAPI(
     title="Translation API",
@@ -80,6 +99,12 @@ reading_comprehension_service = ReadingComprehensionService()
 @app.get("/")
 async def root():
     return {"greeting": "Hello, World!", "message": "Welcome to FastAPI!"}
+
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    """Endpoint to test Sentry integration by triggering a test error."""
+    division_by_zero = 1 / 0
 
 
 @app.post(
